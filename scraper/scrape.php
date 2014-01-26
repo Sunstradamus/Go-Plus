@@ -125,8 +125,8 @@ class Scraper {
 		curl_setopt($this->ch, CURLOPT_RETURNTRANSFER, TRUE);
 		curl_setopt($this->ch, CURLOPT_FOLLOWLOCATION, TRUE);
 		curl_setopt($this->ch, CURLINFO_HEADER_OUT, TRUE);
-		curl_setopt($this->ch, CURLOPT_COOKIEJAR, 'jar.txt');
-		curl_setopt($this->ch, CURLOPT_COOKIEFILE, 'jar.txt');
+		curl_setopt($this->ch, CURLOPT_COOKIEJAR, $GLOBALS["COOKIEJAR"]);
+		curl_setopt($this->ch, CURLOPT_COOKIEFILE, $GLOBALS["COOKIEJAR"]);
 		$this->html = curl_exec($this->ch);
 		
 		curl_setopt($this->ch, CURLOPT_URL, $GLOBALS['SIMSURL']);
