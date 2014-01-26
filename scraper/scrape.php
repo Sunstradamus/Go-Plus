@@ -120,51 +120,62 @@ class Scraper {
 	function __construct() {
 		$this->ch = curl_init();
 		$this->dom = new DOMDocument;
-		curl_setopt($ch, CURLOPT_URL, $LOGINURL);
-		curl_setopt($ch, CURLOPT_USERAGENT, $USERAGENT);
-		curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
-		curl_setopt($ch, CURLOPT_FOLLOWLOCATION, TRUE);
-		curl_setopt($ch, CURLOPT_COOKIEJAR, $COOKIEJAR);
-		curl_setopt($ch, CURLOPT_COOKIEFILE, $COOKIEJAR);
+		curl_setopt($this->ch, CURLOPT_URL, $GLOBALS["LOGINURL"]);
+		curl_setopt($this->ch, CURLOPT_USERAGENT, $GLOBALS["USERAGENT"]);
+		curl_setopt($this->ch, CURLOPT_RETURNTRANSFER, TRUE);
+		curl_setopt($this->ch, CURLOPT_FOLLOWLOCATION, TRUE);
+		curl_setopt($this->ch, CURLINFO_HEADER_OUT, TRUE);
+		curl_setopt($this->ch, CURLOPT_COOKIEJAR, 'jar.txt');
+		curl_setopt($this->ch, CURLOPT_COOKIEFILE, 'jar.txt');
 		$this->html = curl_exec($this->ch);
-		curl_setopt($curlhandle, CURLOPT_URL, $SIMSURL);
+		
+		curl_setopt($this->ch, CURLOPT_URL, $GLOBALS['SIMSURL']);
+		curl_setopt($this->ch, CURLOPT_HTTPHEADER, $GLOBALS["HEADERS"]);
 		$this->html = curl_exec($this->ch);
-		$this->dom->loadHTML($this->html);
-		$this->sid = $this->dom->getElementById('ICSID')->getAttribute('value');
+		@$this->dom->loadHTML($this->html);
+		$this->sid = urlencode($this->dom->getElementById('ICSID')->getAttribute('value'));
 		$this->statenum = $this->dom->getElementById('ICStateNum')->getAttribute('value');
-		curl_setopt($ch, CURLOPT_POST, TRUE);
+		curl_setopt($this->ch, CURLOPT_POST, TRUE);
+		curl_setopt($this->ch, CURLOPT_FOLLOWLOCATION, FALSE);
+		curl_setopt($this->ch, CURLOPT_REFERER, $GLOBALS['SIMSURL']);
 	}
 
 	function genPost($action, $value = NULL) {
-		return $value==NULL ? 'ICType=Panel&ICXPos=0&ICYPos=0&ResponsetoDiffFrame=-1&TargetFrameName=None&GSrchRaUrl=None
-		&FacetPath=None&ICFocus=&ICSaveWarningFilter=0&ICChanged=-1&ICResubmit=0&ICActionPrompt=false&ICTypeAheadID=&ICFind=&ICAddCount=
-		&ICElementNum=0&ICNAVTYPEDROPDOWN=0&ICSID='.$this->sid.'&ICStateNum='.$this->statenum.'&ICAction='.$action : 'ICType=Panel&ICXPos=0&ICYPos=0
-		&ResponsetoDiffFrame=-1&TargetFrameName=None&GSrchRaUrl=None&FacetPath=None&ICFocus=&ICSaveWarningFilter=0&ICChanged=-1&ICResubmit=0
-		&ICActionPrompt=false&ICTypeAheadID=&ICFind=&ICAddCount=&ICElementNum=0&ICNAVTYPEDROPDOWN=0&ICSID='.$this->sid.'&ICStateNum='.$this->statenum.'&ICAction='.$action.$value;
+		$action = urlencode($action);
+		return $value==NULL ? 'ICAJAX=1&ICNAVTYPEDROPDOWN=0&ICType=Panel&ICElementNum=0&ICStateNum='.$this->statenum.'&ICAction='.$action.'&ICXPos=0&ICYPos=0&ResponsetoDiffFrame=-1&TargetFrameName=None&GSrchRaUrl=None&FacetPath=None&ICFocus=&ICSaveWarningFilter=0&ICChanged=-1&ICResubmit=0&ICSID='.$this->sid.'&ICActionPrompt=false&ICTypeAheadID=&ICFind=&ICAddCount=' : 'ICAJAX=1&ICNAVTYPEDROPDOWN=0&ICType=Panel&ICElementNum=0&ICStateNum='.$this->statenum.'&ICAction='.$action.$value.'&ICXPos=0&ICYPos=0&ResponsetoDiffFrame=-1&TargetFrameName=None&GSrchRaUrl=None&FacetPath=None&ICFocus=&ICSaveWarningFilter=0&ICChanged=-1&ICResubmit=0&ICSID='.$this->sid.'&ICActionPrompt=false&ICTypeAheadID=&ICFind=&ICAddCount=';
 	}
 
 	function toggleMenu($index) {
 		$this->ph = $this->genPost('DERIVED_SSS_BCC_SSR_EXPAND_COLLAPS$', $index);
+		var_dump($this->ph);
 		curl_setopt($this->ch, CURLOPT_POSTFIELDS, $this->ph);
 		$this->html = curl_exec($this->ch);
+		$this->statenum++;
+		return $this->html;
 	}
 
 	function selectCourse($index) {
 		$this->ph = $this->genPost('CRSE_TITLE$', $index);
+		var_dump($this->ph);
 		curl_setopt($this->ch, CURLOPT_POSTFIELDS, $this->ph);
 		$this->html = curl_exec($this->ch);
+		$this->statenum++;
+		return $this->html;
 	}
 
 	function selectSession($term) {
-		$this->ph = $this->genPost('CLASS_TBL_VW5$fviewall$0&DERIVED_SAA_CRS_TERM_ALT=', $term);
+		$this->ph = $this->genPost('DERIVED_SAA_CRS_SSR_PB_GO');
+		var_dump($this->ph);
 		curl_setopt($this->ch, CURLOPT_POSTFIELDS, $this->ph);
 		$this->html = curl_exec($this->ch);
+		$this->statenum++;
+		return $this->html;
 	}
 
 	function parse() {
 	}
 
 	function __destruct() {
-		curl_close($ch);
+		curl_close($this->ch);
 	}
 }
