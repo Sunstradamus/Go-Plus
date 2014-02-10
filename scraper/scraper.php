@@ -165,6 +165,51 @@ class Scraper {
 		return $rawsession;
 	}
 
+/*	function xparse() {
+		if($this->state != 'SESSION'){
+			return 1;
+		}
+		@$this->dom->loadHTML($this->html);
+		$finder = new DOMXPath($this->dom);
+		$classname = 'PSLEVEL1GRIDNBO';
+		$sessionnodes = $finder->query("//*[contains(concat(' ', normalize-space(@class), ' '), ' $classname ')]");
+		$sessioncount = $sessionnodes->length;
+		if($sessioncount % 2 == 1){
+			return 2;
+		}
+		$sessioncount /= 2;
+		$numrows = 0;
+		$currentrow = 0;
+		$title = $this->dom->getElementById('DERIVED_CRSECAT_DESCR200')->nodeValue;
+		$title = explode(" - ", $title);
+		$session = new Course();
+		$session->setDept(trim(substr($title[0], 0, 4)));
+		$session->setLevel(trim(substr($title[0], 4)));
+		$session->setName(trim($title[1]));
+		$session->setCareer($this->dom->getElementById('SSR_CRSE_OFF_VW_ACAD_CAREER$0')->nodeValue);
+		$session->setUnits($this->dom->getElementById('DERIVED_CRSECAT_UNITS_RANGE$0')->nodeValue);
+		$session->setPrereq($this->dom->getElementById('DERIVED_CRSECAT_DESCR254A$0')->nodeValue);
+		$session->setWQB($this->dom->getElementById('DERIVED_CRSECAT_DESCRFORMAL$0')->nodeValue);
+		for($i = 0; $i < $sessioncount; $i++) {
+			$rawsession['title'] = $this->dom->getElementById('CLASS_SECTION$'.$i)->nodeValue; //rewrite to split session/course ID/type
+			$raw = $this->innerHTML($this->dom->getElementById('CLASS_MTGPAT$scroll$'.$i));
+			$tmp = new DOMDocument();
+			$tmp->loadHTML($raw);
+			$numrows = $tmp->getElementsByTagName('tr')->length - 1;
+			for($j = 0; $j < $numrows; $j++){
+				$rawsession['day'][$j] = $tmp->getElementById('MTGPAT_DAYS$'.$currentrow)->nodeValue; //rewrite to fix dumb inconsistencies in splitting of days
+				$rawsession['start'][$j] = $tmp->getElementById('MTGPAT_START$'.$currentrow)->nodeValue;
+				$rawsession['end'][$j] = $tmp->getElementById('MTGPAT_END$'.$currentrow)->nodeValue;
+				$rawsession['room'][$j] = $tmp->getElementById('MTGPAT_ROOM$'.$currentrow)->nodeValue;
+				$rawsession['prof'][$j] = $tmp->getElementById('MTGPAT_INSTR$'.$currentrow)->nodeValue;
+				$rawsession['dates'][$j] = $tmp->getElementById('MTGPAT_DATES$'.$currentrow)->nodeValue;
+				$currentrow++;				
+			}
+			$session->addLectures($rawsession, $i);
+		}
+		return $session;
+	} */
+
 	function __destruct() {
 		curl_close($this->ch);
 	}
