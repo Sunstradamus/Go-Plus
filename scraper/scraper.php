@@ -165,7 +165,7 @@ class Scraper {
 		return $rawsession;
 	}
 
-/*	function xparse() {
+	function xparse() {
 		if($this->state != 'SESSION'){
 			return 1;
 		}
@@ -192,24 +192,52 @@ class Scraper {
 		$session->setWQB($this->dom->getElementById('DERIVED_CRSECAT_DESCRFORMAL$0')->nodeValue);
 		$session->setDesc($this->dom->getElementById('SSR_CRSE_OFF_VW_DESCRLONG$0')->nodeValue);
 		for($i = 0; $i < $sessioncount; $i++) {
-			$rawsession['title'] = $this->dom->getElementById('CLASS_SECTION$'.$i)->nodeValue; //rewrite to split session/course ID/type
+			$title = $this->dom->getElementById('CLASS_SECTION$'.$i)->nodeValue;
+			$type = substr($title, 4, 7);
+			$rawsession['id'] = substr($title, 9);
+			$rawsession['section'] = substr($title, 0, 4);
 			$raw = $this->innerHTML($this->dom->getElementById('CLASS_MTGPAT$scroll$'.$i));
 			$tmp = new DOMDocument();
 			$tmp->loadHTML($raw);
 			$numrows = $tmp->getElementsByTagName('tr')->length - 1;
-			for($j = 0; $j < $numrows; $j++){
-				$rawsession['day'][$j] = $tmp->getElementById('MTGPAT_DAYS$'.$currentrow)->nodeValue; //rewrite to fix dumb inconsistencies in splitting of days
-				$rawsession['start'][$j] = $tmp->getElementById('MTGPAT_START$'.$currentrow)->nodeValue;
-				$rawsession['end'][$j] = $tmp->getElementById('MTGPAT_END$'.$currentrow)->nodeValue;
-				$rawsession['room'][$j] = $tmp->getElementById('MTGPAT_ROOM$'.$currentrow)->nodeValue;
-				$rawsession['prof'][$j] = $tmp->getElementById('MTGPAT_INSTR$'.$currentrow)->nodeValue;
-				$rawsession['dates'][$j] = $tmp->getElementById('MTGPAT_DATES$'.$currentrow)->nodeValue;
+			for($j = 0, $k = 0; $j < $numrows; $j++){
+				$day = $tmp->getElementById('MTGPAT_DAYS$'.$currentrow)->nodeValue;
+				if(strlen($day) > 2) {
+					for($k = 0; $k < ((strlen($day)/2)-1); $k++) {
+						$temp = substr($day, 0, 2);
+						$day = substr($day, 2);
+						$rawsession['day'][$j+$k] = $temp;
+						$rawsession['start'][$j+$k] = $tmp->getElementById('MTGPAT_START$'.$currentrow)->nodeValue;
+						$rawsession['end'][$j+$k] = $tmp->getElementById('MTGPAT_END$'.$currentrow)->nodeValue;
+						$rawsession['room'][$j+$k] = $tmp->getElementById('MTGPAT_ROOM$'.$currentrow)->nodeValue;
+						$rawsession['prof'][$j+$k] = $tmp->getElementById('MTGPAT_INSTR$'.$currentrow)->nodeValue;
+						$rawsession['dates'][$j+$k] = $tmp->getElementById('MTGPAT_DATES$'.$currentrow)->nodeValue;
+					}
+				}
+				$rawsession['day'][$j+$k] = $day;
+				$rawsession['start'][$j+$k] = $tmp->getElementById('MTGPAT_START$'.$currentrow)->nodeValue;
+				$rawsession['end'][$j+$k] = $tmp->getElementById('MTGPAT_END$'.$currentrow)->nodeValue;
+				$rawsession['room'][$j+$k] = $tmp->getElementById('MTGPAT_ROOM$'.$currentrow)->nodeValue;
+				$rawsession['prof'][$j+$k] = $tmp->getElementById('MTGPAT_INSTR$'.$currentrow)->nodeValue;
+				$rawsession['dates'][$j+$k] = $tmp->getElementById('MTGPAT_DATES$'.$currentrow)->nodeValue;
 				$currentrow++;				
 			}
-			$session->addLectures($rawsession, $i);
+			switch($type) {
+				case 'LEC':
+					$session->addLectures($rawsession, $i);
+					break;
+				case 'LAB':
+					$session->addLabs($rawsession, $i);
+					break;
+				case 'TUT':
+					$session->addTutorials($rawsession, $i);
+					break;
+				default:
+					return 3;
+			}
 		}
 		return $session;
-	} */
+	}
 
 	function __destruct() {
 		curl_close($this->ch);
