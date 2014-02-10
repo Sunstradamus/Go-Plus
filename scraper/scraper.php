@@ -190,6 +190,7 @@ class Scraper {
 		$session->setUnits($this->dom->getElementById('DERIVED_CRSECAT_UNITS_RANGE$0')->nodeValue);
 		$session->setPrereq($this->dom->getElementById('DERIVED_CRSECAT_DESCR254A$0')->nodeValue);
 		$session->setWQB($this->dom->getElementById('DERIVED_CRSECAT_DESCRFORMAL$0')->nodeValue);
+		$session->setDesc($this->dom->getElementById('SSR_CRSE_OFF_VW_DESCRLONG$0')->nodeValue);
 		for($i = 0; $i < $sessioncount; $i++) {
 			$rawsession['title'] = $this->dom->getElementById('CLASS_SECTION$'.$i)->nodeValue; //rewrite to split session/course ID/type
 			$raw = $this->innerHTML($this->dom->getElementById('CLASS_MTGPAT$scroll$'.$i));
