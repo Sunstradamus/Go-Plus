@@ -13,6 +13,7 @@ class Course {
 	private $lectures;
 	private $tutorials;
 	private $labs;
+	private $sections;
 
 	function setDept($str) {
 		$this->dept = $str;
@@ -78,18 +79,6 @@ class Course {
 		return $this->career;
 	}
 
-	function getLecture() {
-		return $this->lecture;
-	}
-
-	function getLab() {
-		return $this->lab;
-	}
-
-	function getTutorial() {
-		return $this->tutorial;
-	}
-
 	function addLectures($str, $idx) {
 		$this->lectures[$idx] = $str;
 	}
@@ -100,6 +89,10 @@ class Course {
 
 	function addTutorials($str, $idx) {
 		$this->tutorials[$idx] = $str;
+	}
+	
+	function addSections($str, $idx) {
+		$this->sections[$idx] = $str;
 	}
 
 	function getLectures() {
@@ -112,6 +105,10 @@ class Course {
 
 	function getTutorials() {
 		return $this->tutorials;
+	}
+	
+	function getSections() {
+		return $this->sections;
 	}
 
 }

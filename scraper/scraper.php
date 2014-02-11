@@ -211,7 +211,7 @@ class Scraper {
 			for($j = 0, $k = 0; $j < $numrows; $j++){
 				$day = $tmp->getElementById('MTGPAT_DAYS$'.$currentrow)->nodeValue;
 				if(strlen($day) > 2) {
-					for($k = 0; $k < ((strlen($day)/2)-1); $k++) {
+					for($k = 0; $k < (strlen($day)/2); $k++) {
 						$temp = substr($day, 0, 2);
 						$day = substr($day, 2);
 						$rawsession['day'][$j+$k] = $temp;
@@ -242,6 +242,10 @@ class Scraper {
 				case 'TUT':
 					$session->addTutorials($rawsession, $tutc);
 					$tutc++;
+					break;
+				case 'SEC':
+					$session->addSections($rawsession, $secc);
+					$secc++;
 					break;
 				default:
 					return 3;
