@@ -10,9 +10,6 @@ class Course {
 	private $wqb;
 	private $units;
 	private $career;
-	private $lecture = ['id' => "", 'section' => "", 'day' => array(), 'start' => array(), 'end' => array(), 'room' => array(), 'prof' => array(), 'dates' => array(), ];
-	private $tutorial = ['id' => "", 'section' => "", 'day' => array(), 'start' => array(), 'end' => array(), 'room' => array(), 'prof' => array(), 'dates' => array(), ];
-	private $lab = ['id' => "", 'section' => "", 'day' => array(), 'start' => array(), 'end' => array(), 'room' => array(), 'prof' => array(), 'dates' => array(), ];
 	private $lectures;
 	private $tutorials;
 	private $labs;
@@ -45,100 +42,8 @@ class Course {
 		$this->career = $str;
 	}
 
-	function setLectureSection($str) {
-		$this->lecture['section'] = $str;
-	}
-
-	function setLectureID($str) {
-		$this->lecture['id'] = $str;
-	}
-
-	function addLectureDay($str) {
-		$this->lecture['day'][] = $str;
-	}
-
-	function addLectureStart($str) {
-		$this->lecture['start'][] = $str;
-	}
-
-	function addLectureEnd($str) {
-		$this->lecture['end'][] = $str;
-	}
-
-	function addLectureRoom($str) {
-		$this->lecture['room'][] = $str;
-	}
-
-	function addLectureProf($str) {
-		$this->lecture['prof'][] = $str;
-	}
-
-	function addLectureDates($str) {
-		$this->lecture['dates'][] = $str;
-	}
-
-	function setTutorialSection($str) {
-		$this->tutorial['section'] = $str;
-	}
-
-	function setTutorialID($str) {
-		$this->tutorial['id'] = $str;
-	}
-
-	function addTutorialDay($str) {
-		$this->tutorial['day'][] = $str;
-	}
-
-	function addTutorialStart($str) {
-		$this->tutorial['start'][] = $str;
-	}
-
-	function addTutorialEnd($str) {
-		$this->tutorial['end'][] = $str;
-	}
-
-	function addTutorialRoom($str) {
-		$this->tutorial['room'][] = $str;
-	}
-
-	function addTutorialProf($str) {
-		$this->tutorial['prof'][] = $str;
-	}
-
-	function addTutorialDates($str) {
-		$this->tutorial['dates'][] = $str;
-	}
-
-	function setLabSection($str) {
-		$this->lab['section'] = $str;
-	}
-
-	function setLabID($str) {
-		$this->lab['id'] = $str;
-	}
-
-	function addLabDay($str) {
-		$this->lab['day'][] = $str;
-	}
-
-	function addLabStart($str) {
-		$this->lab['start'][] = $str;
-	}
-
-	function addLabEnd($str) {
-		$this->lab['end'][] = $str;
-	}
-
-	function addLabRoom($str) {
-		$this->lab['room'][] = $str;
-	}
-
-	function addLabProf($str) {
-		$this->lab['prof'][] = $str;
-	}
-
-	function addLabDates($str) {
-		$this->lab['dates'][] = $str;
+	function setPrereq($str) {
+		$this->prereq = $str;
 	}
 
 	function getDept() {

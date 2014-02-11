@@ -180,11 +180,14 @@ class Scraper {
 		$sessioncount /= 2;
 		$numrows = 0;
 		$currentrow = 0;
+		$lecc = 0;
+		$labc = 0;
+		$tutc = 0;
 		$title = $this->dom->getElementById('DERIVED_CRSECAT_DESCR200')->nodeValue;
 		$title = explode(" - ", $title);
 		$session = new Course();
 		$session->setDept(trim(substr($title[0], 0, 4)));
-		$session->setLevel(trim(substr($title[0], 4)));
+		$session->setLevel(trim(substr($title[0], 5)));
 		$session->setName(trim($title[1]));
 		$session->setCareer($this->dom->getElementById('SSR_CRSE_OFF_VW_ACAD_CAREER$0')->nodeValue);
 		$session->setUnits($this->dom->getElementById('DERIVED_CRSECAT_UNITS_RANGE$0')->nodeValue);
@@ -192,8 +195,9 @@ class Scraper {
 		$session->setWQB($this->dom->getElementById('DERIVED_CRSECAT_DESCRFORMAL$0')->nodeValue);
 		$session->setDesc($this->dom->getElementById('SSR_CRSE_OFF_VW_DESCRLONG$0')->nodeValue);
 		for($i = 0; $i < $sessioncount; $i++) {
+			$rawsession = array();
 			$title = $this->dom->getElementById('CLASS_SECTION$'.$i)->nodeValue;
-			$type = substr($title, 4, 7);
+			$type = substr($title, 5, 3);
 			$rawsession['id'] = substr($title, 9);
 			$rawsession['section'] = substr($title, 0, 4);
 			$raw = $this->innerHTML($this->dom->getElementById('CLASS_MTGPAT$scroll$'.$i));
@@ -224,13 +228,16 @@ class Scraper {
 			}
 			switch($type) {
 				case 'LEC':
-					$session->addLectures($rawsession, $i);
+					$session->addLectures($rawsession, $lecc);
+					$lecc++;
 					break;
 				case 'LAB':
-					$session->addLabs($rawsession, $i);
+					$session->addLabs($rawsession, $labc);
+					$labc++;
 					break;
 				case 'TUT':
-					$session->addTutorials($rawsession, $i);
+					$session->addTutorials($rawsession, $tutc);
+					$tutc++;
 					break;
 				default:
 					return 3;
