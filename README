@@ -1,2 +1,5 @@
 TODO:	Finish readme
-	Add Sid
+	mysql_insert_id()
+	PHP OBJ -> SQL storage
+	SQL retrival
+	Textbook/RMP integration
