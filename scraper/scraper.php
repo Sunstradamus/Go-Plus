@@ -1,5 +1,4 @@
 <?PHP
-
 class Scraper {
 
 	private $ch; // cURL handle
@@ -8,6 +7,7 @@ class Scraper {
 	private $ph; // POST headers
 	private $sid; // Session ID
 	private $statenum; // IC State Number
+	private $term; // Semester to parse
 	private $state; // Current state of the scraper
 
 	function __construct() {
@@ -40,8 +40,10 @@ class Scraper {
 	/**
 	 * @return string Correct POST headers for SIS
 	 */
-	function genPost($action, $value = NULL) {
-		$action = urlencode($action);
+	function genPost($action, $value = NULL, $encode = true) {
+		if($encode){
+			$action = urlencode($action);
+		}
 		return $value==NULL ? 'ICAJAX=1&ICNAVTYPEDROPDOWN=0&ICType=Panel&ICElementNum=0&ICStateNum='.$this->statenum.'&ICAction='.$action.'&ICXPos=0&ICYPos=0&ResponsetoDiffFrame=-1&TargetFrameName=None&GSrchRaUrl=None&FacetPath=None&ICFocus=&ICSaveWarningFilter=0&ICChanged=-1&ICResubmit=0&ICSID='.$this->sid.'&ICActionPrompt=false&ICTypeAheadID=&ICFind=&ICAddCount=' : 'ICAJAX=1&ICNAVTYPEDROPDOWN=0&ICType=Panel&ICElementNum=0&ICStateNum='.$this->statenum.'&ICAction='.$action.$value.'&ICXPos=0&ICYPos=0&ResponsetoDiffFrame=-1&TargetFrameName=None&GSrchRaUrl=None&FacetPath=None&ICFocus=&ICSaveWarningFilter=0&ICChanged=-1&ICResubmit=0&ICSID='.$this->sid.'&ICActionPrompt=false&ICTypeAheadID=&ICFind=&ICAddCount=';
 	}
 
@@ -121,15 +123,38 @@ class Scraper {
 		if($term == NULL) {
 			$this->ph = $this->genPost('DERIVED_SAA_CRS_SSR_PB_GO');
 		} elseif($viewall == true) {
+			$this->term = $term;
 			$this->ph = $this->genPost('CLASS_TBL_VW5$fviewall$0&DERIVED_SAA_CRS_TERM_ALT=', $term);
 		} else {
-			$this->ph = $this->genPost('DERIVED_SAA_CRS_SSR_PB_GO&DERIVED_SAA_CRS_TERM_ALT=', $term);
+			$this->term = $term;
+			$this->ph = $this->genPost('DERIVED_SAA_CRS_SSR_PB_GO$98$&DERIVED_SAA_CRS_TERM_ALT=', $term, false);
 		}
 		curl_setopt($this->ch, CURLOPT_POSTFIELDS, $this->ph);
 		$this->html = curl_exec($this->ch);
 		$this->statenum++;
 		$this->state = 'SESSION';
 		return $this->html;
+	}
+	
+	function dayToNum($day) {
+		switch($day) {
+			case 'Mo':
+				return 1;
+			case 'Tu':
+				return 2;
+			case 'We':
+				return 3;
+			case 'Th':
+				return 4;
+			case 'Fr':
+				return 5;
+			case 'Sa':
+				return 6;
+			case 'Su':
+				return 7;
+			default:
+				return 0;
+		}
 	}
 
 	/**
@@ -202,7 +227,7 @@ class Scraper {
 			$rawsession = array();
 			$title = $this->dom->getElementById('CLASS_SECTION$'.$i)->nodeValue;
 			$type = substr($title, 5, 3);
-			$rawsession['id'] = substr($title, 9);
+			$rawsession['id'] = substr(substr($title, 9), 1, -1);
 			$rawsession['section'] = substr($title, 0, 4);
 			$raw = $this->innerHTML($this->dom->getElementById('CLASS_MTGPAT$scroll$'.$i));
 			$tmp = new DOMDocument();
@@ -215,7 +240,8 @@ class Scraper {
 					for($k = 0; $k < (strlen($day)/2); $k++) {
 						$temp = substr($day, 0, 2);
 						$day = substr($day, 2);
-						$rawsession['day'][$j+$k] = $temp;
+						$rawsession['term'][$j+$k] = $this->term;
+						$rawsession['day'][$j+$k] = $this->dayToNum($temp);
 						$rawsession['start'][$j+$k] = $tmp->getElementById('MTGPAT_START$'.$currentrow)->nodeValue;
 						$rawsession['end'][$j+$k] = $tmp->getElementById('MTGPAT_END$'.$currentrow)->nodeValue;
 						$rawsession['campus'][$j+$k] = str_replace("Room", "", $loc[1]);
@@ -224,7 +250,8 @@ class Scraper {
 						$rawsession['dates'][$j+$k] = $tmp->getElementById('MTGPAT_DATES$'.$currentrow)->nodeValue;
 					}
 				}
-				$rawsession['day'][$j+$k] = $day;
+				$rawsession['term'][$j+$k] = $this->term;
+				$rawsession['day'][$j+$k] = $this->dayToNum($day);
 				$rawsession['start'][$j+$k] = $tmp->getElementById('MTGPAT_START$'.$currentrow)->nodeValue;
 				$rawsession['end'][$j+$k] = $tmp->getElementById('MTGPAT_END$'.$currentrow)->nodeValue;
 				$rawsession['campus'][$j+$k] = str_replace("Room", "", $loc[1]);

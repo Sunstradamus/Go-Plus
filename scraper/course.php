@@ -1,5 +1,4 @@
 <?PHP
-
 class Course {
 
 	private $dept;
@@ -68,11 +67,29 @@ class Course {
 	}
 
 	function getWQB() {
-		return $this->wqb;
+		$c = 0;
+		$s = $this->wqb;
+		if(substr_count($s, "Writing") == 1){
+			$c += 1;
+		}
+		if(substr_count($s, "Quantitative") == 1){
+			$c += 2;
+		}
+		if(substr_count($s, "Social Science") == 1){
+			$s = substr_replace("Social Science", "FND", $s);
+			$c += 8;
+		}
+		if(substr_count($s, "Humanities") == 1){
+			$c += 16;
+		}
+		if(substr_count($s, "Science") == 1){
+			$c += 4;
+		}
+		return $c;
 	}
 
 	function getUnits() {
-		return $this->units;
+		return intval($this->units);
 	}
 
 	function getCareer() {
