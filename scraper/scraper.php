@@ -187,7 +187,7 @@ class Scraper {
 		$lecc = 0;
 		$labc = 0;
 		$tutc = 0;
-		$title = $this->dom->getElementById('DERIVED_CRSECAT_DESCR200')->nodeValue;
+		$title = str_replace(chr(0xC2).chr(0xA0), '', $this->dom->getElementById('DERIVED_CRSECAT_DESCR200')->nodeValue);
 		$title = explode(" - ", $title);
 		$session = new Course();
 		$session->setDept(trim(substr($title[0], 0, 4)));
@@ -195,9 +195,9 @@ class Scraper {
 		$session->setName(trim($title[1]));
 		$session->setCareer($this->dom->getElementById('SSR_CRSE_OFF_VW_ACAD_CAREER$0')->nodeValue);
 		$session->setUnits($this->dom->getElementById('DERIVED_CRSECAT_UNITS_RANGE$0')->nodeValue);
-		$session->setPrereq($this->dom->getElementById('DERIVED_CRSECAT_DESCR254A$0')->nodeValue);
+		$session->setPrereq(str_replace(chr(0xC2).chr(0xA0), '', $this->dom->getElementById('DERIVED_CRSECAT_DESCR254A$0')->nodeValue));
 		$session->setWQB($this->dom->getElementById('DERIVED_CRSECAT_DESCRFORMAL$0')->nodeValue);
-		$session->setDesc($this->dom->getElementById('SSR_CRSE_OFF_VW_DESCRLONG$0')->nodeValue);
+		$session->setDesc(str_replace(chr(0xC2).chr(0xA0), '', $this->dom->getElementById('SSR_CRSE_OFF_VW_DESCRLONG$0')->nodeValue));
 		for($i = 0; $i < $sessioncount; $i++) {
 			$rawsession = array();
 			$title = $this->dom->getElementById('CLASS_SECTION$'.$i)->nodeValue;
@@ -210,6 +210,7 @@ class Scraper {
 			$numrows = $tmp->getElementsByTagName('tr')->length - 1;
 			for($j = 0, $k = 0; $j < $numrows; $j++){
 				$day = $tmp->getElementById('MTGPAT_DAYS$'.$currentrow)->nodeValue;
+				$loc = explode(": ", $tmp->getElementById('MTGPAT_ROOM$'.$currentrow)->nodeValue);
 				if(strlen($day) > 2) {
 					for($k = 0; $k < (strlen($day)/2); $k++) {
 						$temp = substr($day, 0, 2);
@@ -217,7 +218,8 @@ class Scraper {
 						$rawsession['day'][$j+$k] = $temp;
 						$rawsession['start'][$j+$k] = $tmp->getElementById('MTGPAT_START$'.$currentrow)->nodeValue;
 						$rawsession['end'][$j+$k] = $tmp->getElementById('MTGPAT_END$'.$currentrow)->nodeValue;
-						$rawsession['room'][$j+$k] = $tmp->getElementById('MTGPAT_ROOM$'.$currentrow)->nodeValue;
+						$rawsession['campus'][$j+$k] = str_replace("Room", "", $loc[1]);
+						$rawsession['room'][$j+$k] = $loc[2];
 						$rawsession['prof'][$j+$k] = $tmp->getElementById('MTGPAT_INSTR$'.$currentrow)->nodeValue;
 						$rawsession['dates'][$j+$k] = $tmp->getElementById('MTGPAT_DATES$'.$currentrow)->nodeValue;
 					}
@@ -225,7 +227,8 @@ class Scraper {
 				$rawsession['day'][$j+$k] = $day;
 				$rawsession['start'][$j+$k] = $tmp->getElementById('MTGPAT_START$'.$currentrow)->nodeValue;
 				$rawsession['end'][$j+$k] = $tmp->getElementById('MTGPAT_END$'.$currentrow)->nodeValue;
-				$rawsession['room'][$j+$k] = $tmp->getElementById('MTGPAT_ROOM$'.$currentrow)->nodeValue;
+				$rawsession['campus'][$j+$k] = str_replace("Room", "", $loc[1]);
+				$rawsession['room'][$j+$k] = $loc[2];
 				$rawsession['prof'][$j+$k] = $tmp->getElementById('MTGPAT_INSTR$'.$currentrow)->nodeValue;
 				$rawsession['dates'][$j+$k] = $tmp->getElementById('MTGPAT_DATES$'.$currentrow)->nodeValue;
 				$currentrow++;				
