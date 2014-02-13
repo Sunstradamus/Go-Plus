@@ -6,7 +6,11 @@ class DBParser {
 	function genTime($ts) {
 		$start = $this->timeslotToStartTime($ts);
 		$end = $this->timeslotToEndTime($ts)+100;
-		$time = date('g:i A', strtotime($start)). " - " . date('g:i A', strtotime($end));
+		if($start == 0 || $end == 0){
+			$time = "Exam time is currently unsupported";
+		} else {
+			$time = date('g:i A', strtotime($start)). " - " . date('g:i A', strtotime($end));
+		}
 		return $time;
 	}
 	
