@@ -156,6 +156,76 @@ class Scraper {
 				return 0;
 		}
 	}
+	
+	function genTimeslot($start, $end) {
+		$start24 = date('Hi', strtotime($start));
+		$end24 = date('Hi', strtotime($end));
+		$diff = ($end24 - $start24);
+		$s = 0;
+		if($diff == 90){
+			$s += $this->timeToTimeslot($start24);
+		}
+		if($diff == 190){
+			$s += $this->timeToTimeslot($start24);
+			$start24 += 100;
+			$s += $this->timeToTimeslot($start24);
+		}
+		if($diff == 290){
+			$s += $this->timeToTimeslot($start24);
+			$start24 += 100;
+			$s += $this->timeToTimeslot($start24);
+			$start24 += 100;
+			$s += $this->timeToTimeslot($start24);
+		}
+		return $s;
+	}
+	
+	function timeToTimeslot($str){
+		$c = 0;
+		switch($str){
+			case 830:
+				$c += 1;
+				return $c;
+			case 930:
+				$c += 2;
+				return $c;
+			case 1030:
+				$c += 4;
+				return $c;
+			case 1130:
+				$c += 8;
+				return $c;
+			case 1230:
+				$c += 16;
+				return $c;
+			case 1330:
+				$c += 32;
+				return $c;
+			case 1430:
+				$c += 64;
+				return $c;
+			case 1530:
+				$c += 128;
+				return $c;
+			case 1630:
+				$c += 256;
+				return $c;
+			case 1730:
+				$c += 512;
+				return $c;
+			case 1830:
+				$c += 1024;
+				return $c;
+			case 1930:
+				$c += 2048;
+				return $c;
+			case 2030:
+				$c += 4096;
+				return $c;
+			default:
+				return $c;
+		}
+	}
 
 	/**
 	 * @return string|int an array containing the raw data between tags found on SIS or error code on failure
@@ -242,8 +312,9 @@ class Scraper {
 						$day = substr($day, 2);
 						$rawsession['term'][$j+$k] = $this->term;
 						$rawsession['day'][$j+$k] = $this->dayToNum($temp);
-						$rawsession['start'][$j+$k] = $tmp->getElementById('MTGPAT_START$'.$currentrow)->nodeValue;
-						$rawsession['end'][$j+$k] = $tmp->getElementById('MTGPAT_END$'.$currentrow)->nodeValue;
+						//$rawsession['start'][$j+$k] = $tmp->getElementById('MTGPAT_START$'.$currentrow)->nodeValue;
+						//$rawsession['end'][$j+$k] = $tmp->getElementById('MTGPAT_END$'.$currentrow)->nodeValue;
+						$rawsession['timeslot'][$j+$k] = $this->genTimeslot($tmp->getElementById('MTGPAT_START$'.$currentrow)->nodeValue, $tmp->getElementById('MTGPAT_END$'.$currentrow)->nodeValue);
 						$rawsession['campus'][$j+$k] = str_replace("Room", "", $loc[1]);
 						$rawsession['room'][$j+$k] = $loc[2];
 						$rawsession['prof'][$j+$k] = $tmp->getElementById('MTGPAT_INSTR$'.$currentrow)->nodeValue;
@@ -252,8 +323,9 @@ class Scraper {
 				}
 				$rawsession['term'][$j+$k] = $this->term;
 				$rawsession['day'][$j+$k] = $this->dayToNum($day);
-				$rawsession['start'][$j+$k] = $tmp->getElementById('MTGPAT_START$'.$currentrow)->nodeValue;
-				$rawsession['end'][$j+$k] = $tmp->getElementById('MTGPAT_END$'.$currentrow)->nodeValue;
+				//$rawsession['start'][$j+$k] = $tmp->getElementById('MTGPAT_START$'.$currentrow)->nodeValue;
+				//$rawsession['end'][$j+$k] = $tmp->getElementById('MTGPAT_END$'.$currentrow)->nodeValue;
+				$rawsession['timeslot'][$j+$k] = $this->genTimeslot($tmp->getElementById('MTGPAT_START$'.$currentrow)->nodeValue, $tmp->getElementById('MTGPAT_END$'.$currentrow)->nodeValue);
 				$rawsession['campus'][$j+$k] = str_replace("Room", "", $loc[1]);
 				$rawsession['room'][$j+$k] = $loc[2];
 				$rawsession['prof'][$j+$k] = $tmp->getElementById('MTGPAT_INSTR$'.$currentrow)->nodeValue;

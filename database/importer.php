@@ -1,15 +1,15 @@
 <?PHP
-include 'cfg.php';
+require 'cfg.php';
 require 'course.php';
 
-$fh = fopen('dmp.dat', 'r');
-$cont = fread($fh, filesize('dmp.dat'));
+$fh = fopen($GLOBALS['DUMPFILE'], 'r');
+$cont = fread($fh, filesize($GLOBALS['DUMPFILE']));
 fclose($fh);
 $arr = unserialize($cont);
 
 $mysqli = new mysqli($GLOBALS["SQLHOST"], $GLOBALS["SQLUSR"], $GLOBALS["SQLPWD"], $GLOBALS["SQLDB"]);
 if($mysqli->connect_errno) {
-	echo "Failed to connect: (" . $mysqli->connect_errno . ") ". $mysqli->connect_error;
+	die ("Failed to connect: (" . $mysqli->connect_errno . ") ". $mysqli->connect_error);
 }
 
 for($i = 0; $i < count($arr); $i++){
@@ -36,10 +36,10 @@ for($i = 0; $i < count($arr); $i++){
 	}
 
 	if($obj->getLectures() != NULL){
-		$lec = $obj->getLectures();
+		$sec = $obj->getLectures();
 	
-		for($j = 0; $j < count($lec); $j++){
-			$sql = "INSERT IGNORE INTO `section`(`course_id`, `id`, `type`, `section`, `term`) VALUES ('" . $course_id . "', '" . $lec[$j]['id'] . "', 'LEC', '" . $lec[$j]['section'] . "', '" . $lec[$j]['term'][0] . "')";
+		for($j = 0; $j < count($sec); $j++){
+			$sql = "INSERT IGNORE INTO `section`(`course_id`, `id`, `type`, `section`, `term`) VALUES ('" . $course_id . "', '" . $sec[$j]['id'] . "', 'LEC', '" . $sec[$j]['section'] . "', '" . $sec[$j]['term'][0] . "')";
 
 			if(!$mysqli->query($sql)){
 				die ($mysqli->errno . $mysqli->error);
@@ -49,10 +49,10 @@ for($i = 0; $i < count($arr); $i++){
 			} else {
 				echo "Duplicate entry, skipping section<br/>";
 			}
-			for($k = 0; $k < count($lec[$j]['term']); $k++){
+			for($k = 0; $k < count($sec[$j]['term']); $k++){
 				$instructor_id = 1;
-				if(substr_count($lec[$j]['prof'][$k], ".") == 0 || substr_count($lec[$j]['prof'][$k], "TBA") == 0 || substr_count($lec[$j]['prof'][$k], "Staff") == 0){
-					$sql = "INSERT INTO `instructor`(`name`) SELECT '" . $lec[$j]['prof'][$k] . "' FROM DUAL WHERE NOT EXISTS (SELECT * FROM `instructor` WHERE name='" . $lec[$j]['prof'][$k] . "')";
+				if(substr_count($sec[$j]['prof'][$k], ".") == 0 || substr_count($sec[$j]['prof'][$k], "TBA") == 0 || substr_count($sec[$j]['prof'][$k], "Staff") == 0){
+					$sql = "INSERT INTO `instructor`(`name`) SELECT '" . $sec[$j]['prof'][$k] . "' FROM DUAL WHERE NOT EXISTS (SELECT * FROM `instructor` WHERE name='" . $sec[$j]['prof'][$k] . "')";
 					if(!$mysqli->query($sql)){
 						die ($mysqli->errno . $mysqli->error);
 					}
@@ -61,7 +61,7 @@ for($i = 0; $i < count($arr); $i++){
 						echo "Success: Instructor ID - " . $instructor_id . "<br/>";
 					} else {
 						echo "Duplicate instructor, retrieving ID - ";
-						$sql = "SELECT `id` FROM `instructor` WHERE name='" . $lec[$j]['prof'][$k] . "'";
+						$sql = "SELECT `id` FROM `instructor` WHERE name='" . $sec[$j]['prof'][$k] . "'";
 						if($res = $mysqli->query($sql)){
 							$row = $res->fetch_assoc();
 							$instructor_id = $row['id'];
@@ -70,11 +70,11 @@ for($i = 0; $i < count($arr); $i++){
 							die($mysqli->errno . $mysqli->error);
 						}
 					}
-				} elseif (substr_count($lec[$j]['prof'][$k], "Exam") == 1) {
+				} elseif (substr_count($sec[$j]['prof'][$k], "Exam") == 1) {
 					$instructor_id = 2;
 				}
 
-				$sql = "INSERT INTO `sectionComponent`(`section_id`, `day`, `instructor`, `timeslot`, `campus`, `room`, `dates`) SELECT '" . $lec[$j]['id'] . "', '" . $lec[$j]['day'][$k] . "', '" . $instructor_id . "', '0', '" . $lec[$j]['campus'][$k] . "', '" . $lec[$j]['room'][$k] . "', '" . $lec[$j]['dates'][$k] . "' FROM DUAL WHERE NOT EXISTS (SELECT * FROM `sectionComponent` WHERE section_id='".$lec[$j]['id']."' AND day='".$lec[$j]['day'][$k]."' AND instructor='".$instructor_id."' AND timeslot='0' AND room='".$lec[$j]['room'][$k]."' AND dates='".$lec[$j]['dates'][$k]."')";
+				$sql = "INSERT INTO `sectionComponent`(`section_id`, `day`, `instructor`, `timeslot`, `campus`, `room`, `dates`) SELECT '" . $sec[$j]['id'] . "', '" . $sec[$j]['day'][$k] . "', '" . $instructor_id . "', '" . $sec[$j]['timeslot'][$k] . "', '" . $sec[$j]['campus'][$k] . "', '" . $sec[$j]['room'][$k] . "', '" . $sec[$j]['dates'][$k] . "' FROM DUAL WHERE NOT EXISTS (SELECT * FROM `sectionComponent` WHERE section_id='".$sec[$j]['id']."' AND day='".$sec[$j]['day'][$k]."' AND instructor='".$instructor_id."' AND timeslot='" . $sec[$j]['timeslot'][$k] . "' AND room='".$sec[$j]['room'][$k]."' AND dates='".$sec[$j]['dates'][$k]."')";
 
 				if(!$mysqli->query($sql)){
 					echo $mysqli->errno . $mysqli->error;
@@ -86,12 +86,162 @@ for($i = 0; $i < count($arr); $i++){
 				}
 			}
 		}
-	} elseif ($obj->getTutorials() != NULL){
-		$tut = $obj->getTutorials();
-	} elseif ($obj->getLabs() != NULL){
-		$lab = $obj->getLabs();
-	} else {
+	}
+	if($obj->getTutorials() != NULL){
+		$sec = $obj->getTutorials();
+		
+		for($j = 0; $j < count($sec); $j++){
+			$sql = "INSERT IGNORE INTO `section`(`course_id`, `id`, `type`, `section`, `term`) VALUES ('" . $course_id . "', '" . $sec[$j]['id'] . "', 'TUT', '" . $sec[$j]['section'] . "', '" . $sec[$j]['term'][0] . "')";
+
+			if(!$mysqli->query($sql)){
+				die ($mysqli->errno . $mysqli->error);
+			}
+			if($mysqli->affected_rows != 0){
+				echo "Successfully inserted TUT<br/>";
+			} else {
+				echo "Duplicate entry, skipping section<br/>";
+			}
+			for($k = 0; $k < count($sec[$j]['term']); $k++){
+				$instructor_id = 1;
+				if(substr_count($sec[$j]['prof'][$k], ".") == 0 || substr_count($sec[$j]['prof'][$k], "TBA") == 0 || substr_count($sec[$j]['prof'][$k], "Staff") == 0){
+					$sql = "INSERT INTO `instructor`(`name`) SELECT '" . $sec[$j]['prof'][$k] . "' FROM DUAL WHERE NOT EXISTS (SELECT * FROM `instructor` WHERE name='" . $sec[$j]['prof'][$k] . "')";
+					if(!$mysqli->query($sql)){
+						die ($mysqli->errno . $mysqli->error);
+					}
+					if($mysqli->insert_id != 0){
+						$instructor_id = $mysqli->insert_id;
+						echo "Success: Instructor ID - " . $instructor_id . "<br/>";
+					} else {
+						echo "Duplicate instructor, retrieving ID - ";
+						$sql = "SELECT `id` FROM `instructor` WHERE name='" . $sec[$j]['prof'][$k] . "'";
+						if($res = $mysqli->query($sql)){
+							$row = $res->fetch_assoc();
+							$instructor_id = $row['id'];
+							echo $instructor_id . "<br/>";
+						} else {
+							die($mysqli->errno . $mysqli->error);
+						}
+					}
+				} elseif (substr_count($sec[$j]['prof'][$k], "Exam") == 1) {
+					$instructor_id = 2;
+				}
+
+				$sql = "INSERT INTO `sectionComponent`(`section_id`, `day`, `instructor`, `timeslot`, `campus`, `room`, `dates`) SELECT '" . $sec[$j]['id'] . "', '" . $sec[$j]['day'][$k] . "', '" . $instructor_id . "', '" . $sec[$j]['timeslot'][$k] . "', '" . $sec[$j]['campus'][$k] . "', '" . $sec[$j]['room'][$k] . "', '" . $sec[$j]['dates'][$k] . "' FROM DUAL WHERE NOT EXISTS (SELECT * FROM `sectionComponent` WHERE section_id='".$sec[$j]['id']."' AND day='".$sec[$j]['day'][$k]."' AND instructor='".$instructor_id."' AND timeslot='" . $sec[$j]['timeslot'][$k] . "' AND room='".$sec[$j]['room'][$k]."' AND dates='".$sec[$j]['dates'][$k]."')";
+
+				if(!$mysqli->query($sql)){
+					echo $mysqli->errno . $mysqli->error;
+				}
+				if($mysqli->affected_rows != 0){
+					echo "Successfully updated TUT components<br/>";
+				} else {
+					echo "Duplicate TUT component, skipping<br/>";
+				}
+			}
+		}
+	}
+	if($obj->getLabs() != NULL){
+		$sec = $obj->getLabs();
+		
+		for($j = 0; $j < count($sec); $j++){
+			$sql = "INSERT IGNORE INTO `section`(`course_id`, `id`, `type`, `section`, `term`) VALUES ('" . $course_id . "', '" . $sec[$j]['id'] . "', 'LAB', '" . $sec[$j]['section'] . "', '" . $sec[$j]['term'][0] . "')";
+
+			if(!$mysqli->query($sql)){
+				die ($mysqli->errno . $mysqli->error);
+			}
+			if($mysqli->affected_rows != 0){
+				echo "Successfully inserted LAB<br/>";
+			} else {
+				echo "Duplicate entry, skipping section<br/>";
+			}
+			for($k = 0; $k < count($sec[$j]['term']); $k++){
+				$instructor_id = 1;
+				if(substr_count($sec[$j]['prof'][$k], ".") == 0 || substr_count($sec[$j]['prof'][$k], "TBA") == 0 || substr_count($sec[$j]['prof'][$k], "Staff") == 0){
+					$sql = "INSERT INTO `instructor`(`name`) SELECT '" . $sec[$j]['prof'][$k] . "' FROM DUAL WHERE NOT EXISTS (SELECT * FROM `instructor` WHERE name='" . $sec[$j]['prof'][$k] . "')";
+					if(!$mysqli->query($sql)){
+						die ($mysqli->errno . $mysqli->error);
+					}
+					if($mysqli->insert_id != 0){
+						$instructor_id = $mysqli->insert_id;
+						echo "Success: Instructor ID - " . $instructor_id . "<br/>";
+					} else {
+						echo "Duplicate instructor, retrieving ID - ";
+						$sql = "SELECT `id` FROM `instructor` WHERE name='" . $sec[$j]['prof'][$k] . "'";
+						if($res = $mysqli->query($sql)){
+							$row = $res->fetch_assoc();
+							$instructor_id = $row['id'];
+							echo $instructor_id . "<br/>";
+						} else {
+							die($mysqli->errno . $mysqli->error);
+						}
+					}
+				} elseif (substr_count($sec[$j]['prof'][$k], "Exam") == 1) {
+					$instructor_id = 2;
+				}
+
+				$sql = "INSERT INTO `sectionComponent`(`section_id`, `day`, `instructor`, `timeslot`, `campus`, `room`, `dates`) SELECT '" . $sec[$j]['id'] . "', '" . $sec[$j]['day'][$k] . "', '" . $instructor_id . "', '" . $sec[$j]['timeslot'][$k] . "', '" . $sec[$j]['campus'][$k] . "', '" . $sec[$j]['room'][$k] . "', '" . $sec[$j]['dates'][$k] . "' FROM DUAL WHERE NOT EXISTS (SELECT * FROM `sectionComponent` WHERE section_id='".$sec[$j]['id']."' AND day='".$sec[$j]['day'][$k]."' AND instructor='".$instructor_id."' AND timeslot='" . $sec[$j]['timeslot'][$k] . "' AND room='".$sec[$j]['room'][$k]."' AND dates='".$sec[$j]['dates'][$k]."')";
+
+				if(!$mysqli->query($sql)){
+					echo $mysqli->errno . $mysqli->error;
+				}
+				if($mysqli->affected_rows != 0){
+					echo "Successfully updated LAB components<br/>";
+				} else {
+					echo "Duplicate LAB component, skipping<br/>";
+				}
+			}
+		}
+	}
+	if($obj->getSections() != NULL){
 		$sec = $obj->getSections();
+		
+		for($j = 0; $j < count($sec); $j++){
+			$sql = "INSERT IGNORE INTO `section`(`course_id`, `id`, `type`, `section`, `term`) VALUES ('" . $course_id . "', '" . $sec[$j]['id'] . "', 'SEC', '" . $sec[$j]['section'] . "', '" . $sec[$j]['term'][0] . "')";
+
+			if(!$mysqli->query($sql)){
+				die ($mysqli->errno . $mysqli->error);
+			}
+			if($mysqli->affected_rows != 0){
+				echo "Successfully inserted SEC<br/>";
+			} else {
+				echo "Duplicate entry, skipping section<br/>";
+			}
+			for($k = 0; $k < count($sec[$j]['term']); $k++){
+				$instructor_id = 1;
+				if(substr_count($sec[$j]['prof'][$k], ".") == 0 || substr_count($sec[$j]['prof'][$k], "TBA") == 0 || substr_count($sec[$j]['prof'][$k], "Staff") == 0){
+					$sql = "INSERT INTO `instructor`(`name`) SELECT '" . $sec[$j]['prof'][$k] . "' FROM DUAL WHERE NOT EXISTS (SELECT * FROM `instructor` WHERE name='" . $sec[$j]['prof'][$k] . "')";
+					if(!$mysqli->query($sql)){
+						die ($mysqli->errno . $mysqli->error);
+					}
+					if($mysqli->insert_id != 0){
+						$instructor_id = $mysqli->insert_id;
+						echo "Success: Instructor ID - " . $instructor_id . "<br/>";
+					} else {
+						echo "Duplicate instructor, retrieving ID - ";
+						$sql = "SELECT `id` FROM `instructor` WHERE name='" . $sec[$j]['prof'][$k] . "'";
+						if($res = $mysqli->query($sql)){
+							$row = $res->fetch_assoc();
+							$instructor_id = $row['id'];
+							echo $instructor_id . "<br/>";
+						} else {
+							die($mysqli->errno . $mysqli->error);
+						}
+					}
+				} elseif (substr_count($sec[$j]['prof'][$k], "Exam") == 1) {
+					$instructor_id = 2;
+				}
+
+				$sql = "INSERT INTO `sectionComponent`(`section_id`, `day`, `instructor`, `timeslot`, `campus`, `room`, `dates`) SELECT '" . $sec[$j]['id'] . "', '" . $sec[$j]['day'][$k] . "', '" . $instructor_id . "', '" . $sec[$j]['timeslot'][$k] . "', '" . $sec[$j]['campus'][$k] . "', '" . $sec[$j]['room'][$k] . "', '" . $sec[$j]['dates'][$k] . "' FROM DUAL WHERE NOT EXISTS (SELECT * FROM `sectionComponent` WHERE section_id='".$sec[$j]['id']."' AND day='".$sec[$j]['day'][$k]."' AND instructor='".$instructor_id."' AND timeslot='" . $sec[$j]['timeslot'][$k] . "' AND room='".$sec[$j]['room'][$k]."' AND dates='".$sec[$j]['dates'][$k]."')";
+
+				if(!$mysqli->query($sql)){
+					echo $mysqli->errno . $mysqli->error;
+				}
+				if($mysqli->affected_rows != 0){
+					echo "Successfully updated SEC components<br/>";
+				} else {
+					echo "Duplicate SEC component, skipping<br/>";
+				}
+			}
+		}
 	}
 }
 
