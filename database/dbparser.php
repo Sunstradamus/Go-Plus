@@ -3,6 +3,27 @@ class DBParser {
 
 	private $ts;
 
+	function numToDay($num) {
+		switch($num){
+			case 1:
+				return 'Monday';
+			case 2:
+				return 'Tuesday';
+			case 3:
+				return 'Wednesday';
+			case 4:
+				return 'Thursday';
+			case 5:
+				return 'Friday';
+			case 6:
+				return 'Saturday';
+			case 7:
+				return 'Sunday';
+			default:
+				return 'Undated';
+		}
+	}
+
 	function genTime($ts) {
 		$start = $this->timeslotToStartTime($ts);
 		$end = $this->timeslotToEndTime($ts)+100;
@@ -17,12 +38,12 @@ class DBParser {
 	function timeslotToStartTime($ts) {
 		$time = 0;
 		if($ts & 1) {
-			$time = 830;
+			$time = '0830';
 			$this->ts = $ts - 1;
 			return $time;
 		}
 		if($ts & 2) {
-			$time = 930;
+			$time = '0930';
 			$this->ts = $ts - 2;
 			return $time;
 		}
@@ -86,10 +107,10 @@ class DBParser {
 	function timeslotToEndTime($ts) {
 		$time = 0;
 		if($ts & 1) {
-			$time = 830;
+			$time = '0830';
 		}
 		if($ts & 2) {
-			$time = 930;
+			$time = '0930';
 		}
 		if($ts & 4) {
 			$time = 1030;
