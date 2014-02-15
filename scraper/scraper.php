@@ -56,6 +56,15 @@ class Scraper {
 		return $count;
 	}
 
+	function isMore() {
+		@$this->dom->loadHTML($this->html);
+		if($this->dom->getElementById('CLASS_TBL_VW5$fviewall$0')->nodeValue != "View All"){
+			return false;
+		} else {
+			return true;
+		}
+	}
+
 	/**
 	 * @return string HTML contained inside a DOM element
 	 */
@@ -123,9 +132,21 @@ class Scraper {
 		if($term == NULL) {
 			$this->ph = $this->genPost('DERIVED_SAA_CRS_SSR_PB_GO');
 		} elseif($viewall == true) {
+			if($this->state != 'SESSION'){
+				return '1';
+			}
+			@$this->dom->loadHTML($this->html);
+			if($this->dom->getElementById('CLASS_TBL_VW5$fviewall$0')->nodeValue != "View All"){
+				$this->ph = $this->genPost('DERIVED_SAA_CRS_SSR_PB_GO$98$&DERIVED_SAA_CRS_TERM_ALT=', $term, false);
+			} else {
+				$this->ph = $this->genPost('CLASS_TBL_VW5$fviewall$0');
+				$this->ph .= "&DERIVED_SAA_CRS_TERM_ALT=" . $term;
+			}
 			$this->term = $term;
-			$this->ph = $this->genPost('CLASS_TBL_VW5$fviewall$0&DERIVED_SAA_CRS_TERM_ALT=', $term);
 		} else {
+			if($this->state != 'SESSION'){
+				return '1';
+			}
 			$this->term = $term;
 			$this->ph = $this->genPost('DERIVED_SAA_CRS_SSR_PB_GO$98$&DERIVED_SAA_CRS_TERM_ALT=', $term, false);
 		}
@@ -269,36 +290,38 @@ class Scraper {
 			return 1;
 		}
 		@$this->dom->loadHTML($this->html);
-		$finder = new DOMXPath($this->dom);
 		$classname = 'PSLEVEL1GRIDNBO';
-		$sessionnodes = $finder->query("//*[contains(concat(' ', normalize-space(@class), ' '), ' $classname ')]");
-		$sessioncount = $sessionnodes->length;
-		if($sessioncount % 2 == 1){
-			return 2;
-		}
-		$sessioncount /= 2;
 		$numrows = 0;
 		$currentrow = 0;
 		$lecc = 0;
 		$labc = 0;
 		$tutc = 0;
+		$secc = 0;
 		$title = str_replace(chr(0xC2).chr(0xA0), '', $this->dom->getElementById('DERIVED_CRSECAT_DESCR200')->nodeValue);
 		$title = explode(" - ", $title);
 		$session = new Course();
 		$session->setDept(trim(substr($title[0], 0, 4)));
-		$session->setLevel(trim(substr($title[0], 5)));
+		$session->setLevel(trim(substr($title[0], 4)));
 		$session->setName(trim($title[1]));
 		$session->setCareer($this->dom->getElementById('SSR_CRSE_OFF_VW_ACAD_CAREER$0')->nodeValue);
 		$session->setUnits($this->dom->getElementById('DERIVED_CRSECAT_UNITS_RANGE$0')->nodeValue);
 		$session->setPrereq(str_replace(chr(0xC2).chr(0xA0), '', $this->dom->getElementById('DERIVED_CRSECAT_DESCR254A$0')->nodeValue));
 		$session->setWQB($this->dom->getElementById('DERIVED_CRSECAT_DESCRFORMAL$0')->nodeValue);
 		$session->setDesc(str_replace(chr(0xC2).chr(0xA0), '', $this->dom->getElementById('SSR_CRSE_OFF_VW_DESCRLONG$0')->nodeValue));
+		$finder = new DOMXPath($this->dom);
+		$sessionnodes = $finder->query("//*[contains(concat(' ', normalize-space(@class), ' '), ' $classname ')]");
+		$sessioncount = $sessionnodes->length;
+		if($sessioncount % 2 == 1){
+			return 2;
+		}
+		$sessioncount /= 2;
 		for($i = 0; $i < $sessioncount; $i++) {
 			$rawsession = array();
 			$title = $this->dom->getElementById('CLASS_SECTION$'.$i)->nodeValue;
 			$type = substr($title, 5, 3);
 			$rawsession['id'] = substr(substr($title, 9), 1, -1);
 			$rawsession['section'] = substr($title, 0, 4);
+			$rawsession['type'] = $type;
 			$raw = $this->innerHTML($this->dom->getElementById('CLASS_MTGPAT$scroll$'.$i));
 			$tmp = new DOMDocument();
 			$tmp->loadHTML($raw);
@@ -315,7 +338,7 @@ class Scraper {
 						//$rawsession['start'][$j+$k] = $tmp->getElementById('MTGPAT_START$'.$currentrow)->nodeValue;
 						//$rawsession['end'][$j+$k] = $tmp->getElementById('MTGPAT_END$'.$currentrow)->nodeValue;
 						$rawsession['timeslot'][$j+$k] = $this->genTimeslot($tmp->getElementById('MTGPAT_START$'.$currentrow)->nodeValue, $tmp->getElementById('MTGPAT_END$'.$currentrow)->nodeValue);
-						$rawsession['campus'][$j+$k] = str_replace("Room", "", $loc[1]);
+						$rawsession['campus'][$j+$k] = substr(str_replace("Room", "", $loc[1]), 0, -1);
 						$rawsession['room'][$j+$k] = $loc[2];
 						$rawsession['prof'][$j+$k] = $tmp->getElementById('MTGPAT_INSTR$'.$currentrow)->nodeValue;
 						$rawsession['dates'][$j+$k] = $tmp->getElementById('MTGPAT_DATES$'.$currentrow)->nodeValue;
@@ -326,7 +349,7 @@ class Scraper {
 				//$rawsession['start'][$j+$k] = $tmp->getElementById('MTGPAT_START$'.$currentrow)->nodeValue;
 				//$rawsession['end'][$j+$k] = $tmp->getElementById('MTGPAT_END$'.$currentrow)->nodeValue;
 				$rawsession['timeslot'][$j+$k] = $this->genTimeslot($tmp->getElementById('MTGPAT_START$'.$currentrow)->nodeValue, $tmp->getElementById('MTGPAT_END$'.$currentrow)->nodeValue);
-				$rawsession['campus'][$j+$k] = str_replace("Room", "", $loc[1]);
+				$rawsession['campus'][$j+$k] = substr(str_replace("Room", "", $loc[1]), 0, -1);
 				$rawsession['room'][$j+$k] = $loc[2];
 				$rawsession['prof'][$j+$k] = $tmp->getElementById('MTGPAT_INSTR$'.$currentrow)->nodeValue;
 				$rawsession['dates'][$j+$k] = $tmp->getElementById('MTGPAT_DATES$'.$currentrow)->nodeValue;
@@ -345,12 +368,15 @@ class Scraper {
 					$session->addTutorials($rawsession, $tutc);
 					$tutc++;
 					break;
-				case 'SEC':
+				//case 'SEC':
+				//	$session->addSections($rawsession, $secc);
+				//	$secc++;
+				//	break;
+				default:
 					$session->addSections($rawsession, $secc);
 					$secc++;
+					//return 3;
 					break;
-				default:
-					return 3;
 			}
 		}
 		return $session;

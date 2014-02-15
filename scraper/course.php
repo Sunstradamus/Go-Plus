@@ -76,7 +76,7 @@ class Course {
 			$c += 2;
 		}
 		if(substr_count($s, "Social Science") == 1){
-			$s = substr_replace("Social Science", "FND", $s);
+			$s = str_replace("Social Science", "FND", $s);
 			$c += 8;
 		}
 		if(substr_count($s, "Humanities") == 1){

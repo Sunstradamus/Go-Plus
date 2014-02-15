@@ -23,10 +23,56 @@ class DBParser {
 				return 'Undated';
 		}
 	}
+	
+	function numToTerm($num) {
+		$year = "20";
+		$year .= substr($num, 1, 2);
+		$sem = substr($num, 3);
+		switch($sem){
+			case 1:
+				$sem = "Spring";
+				break;
+			case 4:
+				$sem = "Summer";
+				break;
+			case 7:
+				$sem = "Fall";
+				break;
+			default:
+				$sem = "UNKNOWN";
+				break;
+		}
+		return $sem . " " . $year;
+	}
+	
+	function numToWQB($num) {
+		$wqb = "";
+		if($num & 1){
+			$wqb .= "Writing|";
+		}
+		if($num & 2){
+			$wqb .= "Quantitative|";
+		}
+		if($num & 4){
+			$wqb .= "Science|";
+		}
+		if($num & 8){
+			$wqb .= "Social Sciences|";
+		}
+		if($num & 16){
+			$wqb .= "Humanities|";
+		}
+		$wqb = substr($wqb, 0, -1);
+		$wqb = str_replace("|", "/", $wqb);
+		return $wqb;
+	}
 
 	function genTime($ts) {
 		$start = $this->timeslotToStartTime($ts);
 		$end = $this->timeslotToEndTime($ts)+100;
+		if(strlen($end) == 3){
+			$end = '0'.$end;
+		}
 		if($start == 0 || $end == 0){
 			$time = "Exam time is currently unsupported";
 		} else {
