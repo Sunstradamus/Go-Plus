@@ -6,3 +6,4 @@ $SQLUSR  = 'changeme';
 $SQLPWD  = 'changeme';
 
 $DUMPFILE = 'changeme';
+$LOGFILE = 'changeme';

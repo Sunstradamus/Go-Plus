@@ -55,6 +55,15 @@ class Scraper {
 		$count = ($nodes->length)/2;
 		return $count;
 	}
+	
+	function getNumSubjects() {
+		@$this->dom->loadHTML($this->html);
+		$finder = new DOMXPath($this->dom);
+		$classname = 'SSSHYPERLINKBOLD';
+		$nodes = $finder->query("//*[contains(concat(' ', normalize-space(@class), ' '), ' $classname ')]");
+		$count = ($nodes->length)/2;
+		return $count;
+	}
 
 	function isMore() {
 		@$this->dom->loadHTML($this->html);
@@ -178,6 +187,8 @@ class Scraper {
 		}
 	}
 	
+	/*
+	
 	function genTimeslot($start, $end) {
 		$start24 = date('Hi', strtotime($start));
 		$end24 = date('Hi', strtotime($end));
@@ -246,6 +257,237 @@ class Scraper {
 			default:
 				return $c;
 		}
+	} */
+	
+	function roundHalfHourUp($str){
+		$hour = substr($str, 0, 2);
+		$min = substr($str, 2);
+		if($min == '00' || $min == 30){
+			return $str;
+		} elseif ($min < 30){
+			return $hour.'30';
+		} elseif ($min > 30){
+			$hour = intval($hour);
+			$hour++;
+			if(strlen($hour) == 1){
+				$hour = '0'.$hour;
+			}
+			return $hour.'00';
+		}
+	}
+	
+	function genTimeslot($start, $end){
+		$start24 = date('Hi', strtotime($start));
+		$end24 = $this->roundHalfHourUp(date('Hi', strtotime($end)));
+		$diff = ($end24 - $start24);
+		$ts = 0;
+		if($diff == 30 || $diff == 70){
+			$ts += $this->timeToTimeslot($start24);
+		} elseif ($diff == 100){
+			$ts += $this->timeToTimeslot($start24);
+			$start24 = date('Hi', strtotime($start.' +30 minutes'));
+			$ts += $this->timeToTimeslot($start24);
+		} elseif ($diff == 130 || $diff == 170){
+			$ts += $this->timeToTimeslot($start24);
+			$start24 = date('Hi', strtotime($start.' +30 minutes'));
+			$ts += $this->timeToTimeslot($start24);
+			$start24 = date('Hi', strtotime($start.' +60 minutes'));
+			$ts += $this->timeToTimeslot($start24);
+		} elseif ($diff == 200){
+			$ts += $this->timeToTimeslot($start24);
+			$start24 = date('Hi', strtotime($start.' +30 minutes'));
+			$ts += $this->timeToTimeslot($start24);
+			$start24 = date('Hi', strtotime($start.' +60 minutes'));
+			$ts += $this->timeToTimeslot($start24);
+			$start24 = date('Hi', strtotime($start.' +90 minutes'));
+			$ts += $this->timeToTimeslot($start24);
+		} elseif ($diff == 230 || $diff == 270){
+			$ts += $this->timeToTimeslot($start24);
+			$start24 = date('Hi', strtotime($start.' +30 minutes'));
+			$ts += $this->timeToTimeslot($start24);
+			$start24 = date('Hi', strtotime($start.' +60 minutes'));
+			$ts += $this->timeToTimeslot($start24);
+			$start24 = date('Hi', strtotime($start.' +90 minutes'));
+			$ts += $this->timeToTimeslot($start24);
+			$start24 = date('Hi', strtotime($start.' +120 minutes'));
+			$ts += $this->timeToTimeslot($start24);
+		} elseif ($diff == 300){
+			$ts += $this->timeToTimeslot($start24);
+			$start24 = date('Hi', strtotime($start.' +30 minutes'));
+			$ts += $this->timeToTimeslot($start24);
+			$start24 = date('Hi', strtotime($start.' +60 minutes'));
+			$ts += $this->timeToTimeslot($start24);
+			$start24 = date('Hi', strtotime($start.' +90 minutes'));
+			$ts += $this->timeToTimeslot($start24);
+			$start24 = date('Hi', strtotime($start.' +120 minutes'));
+			$ts += $this->timeToTimeslot($start24);
+			$start24 = date('Hi', strtotime($start.' +150 minutes'));
+			$ts += $this->timeToTimeslot($start24);
+		} elseif ($diff == 330 || $diff == 370){
+			$ts += $this->timeToTimeslot($start24);
+			$start24 = date('Hi', strtotime($start.' +30 minutes'));
+			$ts += $this->timeToTimeslot($start24);
+			$start24 = date('Hi', strtotime($start.' +60 minutes'));
+			$ts += $this->timeToTimeslot($start24);
+			$start24 = date('Hi', strtotime($start.' +90 minutes'));
+			$ts += $this->timeToTimeslot($start24);
+			$start24 = date('Hi', strtotime($start.' +120 minutes'));
+			$ts += $this->timeToTimeslot($start24);
+			$start24 = date('Hi', strtotime($start.' +150 minutes'));
+			$ts += $this->timeToTimeslot($start24);
+			$start24 = date('Hi', strtotime($start.' +180 minutes'));
+			$ts += $this->timeToTimeslot($start24);
+		} elseif ($diff == 400){
+			$ts += $this->timeToTimeslot($start24);
+			$start24 = date('Hi', strtotime($start.' +30 minutes'));
+			$ts += $this->timeToTimeslot($start24);
+			$start24 = date('Hi', strtotime($start.' +60 minutes'));
+			$ts += $this->timeToTimeslot($start24);
+			$start24 = date('Hi', strtotime($start.' +90 minutes'));
+			$ts += $this->timeToTimeslot($start24);
+			$start24 = date('Hi', strtotime($start.' +120 minutes'));
+			$ts += $this->timeToTimeslot($start24);
+			$start24 = date('Hi', strtotime($start.' +150 minutes'));
+			$ts += $this->timeToTimeslot($start24);
+			$start24 = date('Hi', strtotime($start.' +180 minutes'));
+			$ts += $this->timeToTimeslot($start24);
+			$start24 = date('Hi', strtotime($start.' +210 minutes'));
+			$ts += $this->timeToTimeslot($start24);
+		} elseif ($diff == 430 || $diff == 470){
+			$ts += $this->timeToTimeslot($start24);
+			$start24 = date('Hi', strtotime($start.' +30 minutes'));
+			$ts += $this->timeToTimeslot($start24);
+			$start24 = date('Hi', strtotime($start.' +60 minutes'));
+			$ts += $this->timeToTimeslot($start24);
+			$start24 = date('Hi', strtotime($start.' +90 minutes'));
+			$ts += $this->timeToTimeslot($start24);
+			$start24 = date('Hi', strtotime($start.' +120 minutes'));
+			$ts += $this->timeToTimeslot($start24);
+			$start24 = date('Hi', strtotime($start.' +150 minutes'));
+			$ts += $this->timeToTimeslot($start24);
+			$start24 = date('Hi', strtotime($start.' +180 minutes'));
+			$ts += $this->timeToTimeslot($start24);
+			$start24 = date('Hi', strtotime($start.' +210 minutes'));
+			$ts += $this->timeToTimeslot($start24);
+			$start24 = date('Hi', strtotime($start.' +240 minutes'));
+			$ts += $this->timeToTimeslot($start24);
+		} elseif ($diff == 500){
+			$ts += $this->timeToTimeslot($start24);
+			$start24 = date('Hi', strtotime($start.' +30 minutes'));
+			$ts += $this->timeToTimeslot($start24);
+			$start24 = date('Hi', strtotime($start.' +60 minutes'));
+			$ts += $this->timeToTimeslot($start24);
+			$start24 = date('Hi', strtotime($start.' +90 minutes'));
+			$ts += $this->timeToTimeslot($start24);
+			$start24 = date('Hi', strtotime($start.' +120 minutes'));
+			$ts += $this->timeToTimeslot($start24);
+			$start24 = date('Hi', strtotime($start.' +150 minutes'));
+			$ts += $this->timeToTimeslot($start24);
+			$start24 = date('Hi', strtotime($start.' +180 minutes'));
+			$ts += $this->timeToTimeslot($start24);
+			$start24 = date('Hi', strtotime($start.' +210 minutes'));
+			$ts += $this->timeToTimeslot($start24);
+			$start24 = date('Hi', strtotime($start.' +240 minutes'));
+			$ts += $this->timeToTimeslot($start24);
+			$start24 = date('Hi', strtotime($start.' +270 minutes'));
+			$ts += $this->timeToTimeslot($start24);
+		}
+		return $ts;
+	}
+	
+	function timeToTimeslot($str){
+		$c = 0;
+		switch($str){
+			case 800:
+				$c += 1;
+				return $c;
+			case 830:
+				$c += 2;
+				return $c;
+			case 900:
+				$c += 4;
+				return $c;
+			case 930:
+				$c += 8;
+				return $c;
+			case 1000:
+				$c += 16;
+				return $c;
+			case 1030:
+				$c += 32;
+				return $c;
+			case 1100:
+				$c += 64;
+				return $c;
+			case 1130:
+				$c += 128;
+				return $c;
+			case 1200:
+				$c += 256;
+				return $c;
+			case 1230:
+				$c += 512;
+				return $c;
+			case 1300:
+				$c += 1024;
+				return $c;
+			case 1330:
+				$c += 2048;
+				return $c;
+			case 1400:
+				$c += 4096;
+				return $c;
+			case 1430:
+				$c += 8192;
+				return $c;
+			case 1500:
+				$c += 16384;
+				return $c;
+			case 1530:
+				$c += 32768;
+				return $c;
+			case 1600:
+				$c += 65536;
+				return $c;
+			case 1630:
+				$c += 131072;
+				return $c;
+			case 1700:
+				$c += 262144;
+				return $c;
+			case 1730:
+				$c += 524288;
+				return $c;
+			case 1800:
+				$c += 1048576;
+				return $c;
+			case 1830:
+				$c += 2097152;
+				return $c;
+			case 1900:
+				$c += 4194304;
+				return $c;
+			case 1930:
+				$c += 8388608;
+				return $c;
+			case 2000:
+				$c += 16777216;
+				return $c;
+			case 2030:
+				$c += 33554432;
+				return $c;
+			case 2100:
+				$c += 67108864;
+				return $c;
+			case 2130:
+				$c += 134217728;
+				return $c;
+			case 2200:
+				$c += 268435456;
+				return $c;
+			default:
+				return $c;
+		}
 	}
 
 	/**
@@ -299,9 +541,10 @@ class Scraper {
 		$secc = 0;
 		$title = str_replace(chr(0xC2).chr(0xA0), '', $this->dom->getElementById('DERIVED_CRSECAT_DESCR200')->nodeValue);
 		$title = explode(" - ", $title);
+		$course = explode(" ", $title[0]);
 		$session = new Course();
-		$session->setDept(trim(substr($title[0], 0, 4)));
-		$session->setLevel(trim(substr($title[0], 4)));
+		$session->setDept(trim($course[0]));
+		$session->setLevel(trim($course[1]));
 		$session->setName(trim($title[1]));
 		$session->setCareer($this->dom->getElementById('SSR_CRSE_OFF_VW_ACAD_CAREER$0')->nodeValue);
 		$session->setUnits($this->dom->getElementById('DERIVED_CRSECAT_UNITS_RANGE$0')->nodeValue);
@@ -328,17 +571,23 @@ class Scraper {
 			$numrows = $tmp->getElementsByTagName('tr')->length - 1;
 			for($j = 0, $k = 0; $j < $numrows; $j++){
 				$day = $tmp->getElementById('MTGPAT_DAYS$'.$currentrow)->nodeValue;
-				$loc = explode(": ", $tmp->getElementById('MTGPAT_ROOM$'.$currentrow)->nodeValue);
+				$rm = $tmp->getElementById('MTGPAT_ROOM$'.$currentrow)->nodeValue;
+				if($rm == 'Distance Education'){
+					$loc[1] = 'DIST ED';
+					$loc[2] = $loc[1];
+				} else {
+					$loc = explode(": ", $tmp->getElementById('MTGPAT_ROOM$'.$currentrow)->nodeValue);
+					$loc[1] = substr(str_replace("Room", "", $loc[1]), 0, -1); //MKR
+				}
 				if(strlen($day) > 2) {
 					for($k = 0; $k < (strlen($day)/2); $k++) {
 						$temp = substr($day, 0, 2);
 						$day = substr($day, 2);
 						$rawsession['term'][$j+$k] = $this->term;
 						$rawsession['day'][$j+$k] = $this->dayToNum($temp);
-						//$rawsession['start'][$j+$k] = $tmp->getElementById('MTGPAT_START$'.$currentrow)->nodeValue;
-						//$rawsession['end'][$j+$k] = $tmp->getElementById('MTGPAT_END$'.$currentrow)->nodeValue;
 						$rawsession['timeslot'][$j+$k] = $this->genTimeslot($tmp->getElementById('MTGPAT_START$'.$currentrow)->nodeValue, $tmp->getElementById('MTGPAT_END$'.$currentrow)->nodeValue);
-						$rawsession['campus'][$j+$k] = substr(str_replace("Room", "", $loc[1]), 0, -1);
+						//$rawsession['campus'][$j+$k] = substr(str_replace("Room", "", $loc[1]), 0, -1);
+						$rawsession['campus'][$j+$k] = $loc[1]; //MKR
 						$rawsession['room'][$j+$k] = $loc[2];
 						$rawsession['prof'][$j+$k] = $tmp->getElementById('MTGPAT_INSTR$'.$currentrow)->nodeValue;
 						$rawsession['dates'][$j+$k] = $tmp->getElementById('MTGPAT_DATES$'.$currentrow)->nodeValue;
@@ -346,10 +595,9 @@ class Scraper {
 				}
 				$rawsession['term'][$j+$k] = $this->term;
 				$rawsession['day'][$j+$k] = $this->dayToNum($day);
-				//$rawsession['start'][$j+$k] = $tmp->getElementById('MTGPAT_START$'.$currentrow)->nodeValue;
-				//$rawsession['end'][$j+$k] = $tmp->getElementById('MTGPAT_END$'.$currentrow)->nodeValue;
 				$rawsession['timeslot'][$j+$k] = $this->genTimeslot($tmp->getElementById('MTGPAT_START$'.$currentrow)->nodeValue, $tmp->getElementById('MTGPAT_END$'.$currentrow)->nodeValue);
-				$rawsession['campus'][$j+$k] = substr(str_replace("Room", "", $loc[1]), 0, -1);
+				//$rawsession['campus'][$j+$k] = substr(str_replace("Room", "", $loc[1]), 0, -1);
+				$rawsession['campus'][$j+$k] = $loc[1];
 				$rawsession['room'][$j+$k] = $loc[2];
 				$rawsession['prof'][$j+$k] = $tmp->getElementById('MTGPAT_INSTR$'.$currentrow)->nodeValue;
 				$rawsession['dates'][$j+$k] = $tmp->getElementById('MTGPAT_DATES$'.$currentrow)->nodeValue;
